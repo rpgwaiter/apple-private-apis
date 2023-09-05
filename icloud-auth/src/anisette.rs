@@ -13,7 +13,7 @@ impl AnisetteData {
         let base_headers = match AnisetteHeaders::get_anisette_headers_provider(
             AnisetteConfiguration::new()
                 .set_configuration_path(PathBuf::new().join("anisette_test"))
-                .set_anisette_url("https://ani.f1sh.me".to_string()),
+                .set_anisette_url("https://localhost:6969".to_string()),
         ) {
             Ok(mut b) => match b.provider.get_authentication_headers() {
                 Ok(b) => b,
