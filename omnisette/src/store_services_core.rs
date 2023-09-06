@@ -63,6 +63,15 @@ pub struct StoreServicesCoreADIProxy<'lt> {
             out_otp_size: *mut u32,
         ) -> i32
     ),
+    adi_calculate_action_signature: sysv64_type!(
+        fn( // THESE ARE WRONG
+            ds_id: i64,
+            out_mid: *mut *const u8,
+            out_mid_size: *mut u32,
+            out_otp: *mut *const u8,
+            out_otp_size: *mut u32,
+        ) -> i32
+    ),
 }
 
 impl StoreServicesCoreADIProxy<'_> {
@@ -74,6 +83,7 @@ impl StoreServicesCoreADIProxy<'_> {
         // Should be safe if the library is correct.
         unsafe {
             LoaderHelpers::setup_hooks();
+            println!("{:?}", library_path);
 
             if !library_path.exists() {
                 std::fs::create_dir(library_path)?;
@@ -143,6 +153,9 @@ impl StoreServicesCoreADIProxy<'_> {
             let adi_otp_request = store_services_core
                 .get_symbol("qi864985u0")
                 .ok_or(ADIStoreSericesCoreErr::InvalidLibraryFormat)?;
+            let adi_calculate_action_signature = store_services_core
+                .get_symbol("")
+                .ok_or(ADIStoreSericesCoreErr::InvalidLibraryFormat)?;
 
             let mut proxy = StoreServicesCoreADIProxy {
                 store_services_core,
@@ -161,6 +174,7 @@ impl StoreServicesCoreADIProxy<'_> {
                 adi_get_login_code: std::mem::transmute(adi_get_login_code),
                 adi_dispose: std::mem::transmute(adi_dispose),
                 adi_otp_request: std::mem::transmute(adi_otp_request),
+                adi_calculate_action_signature: std::mem::transmute(adi_calculate_action_signature),
             };
 
             proxy.set_provisioning_path(
@@ -224,6 +238,20 @@ impl ADIProxy for StoreServicesCoreADIProxy<'_> {
     }
 
     fn end_provisioning(&mut self, session: u32, ptm: &[u8], tk: &[u8]) -> Result<(), ADIError> {
+        let ptm_size = ptm.len() as u32;
+        let ptm_ptr = ptm.as_ptr();
+
+        let tk_size = tk.len() as u32;
+        let tk_ptr = tk.as_ptr();
+
+        match (self.adi_provisioning_end)(session, ptm_ptr, ptm_size, tk_ptr, tk_size) {
+            0 => Ok(()),
+            err => Err(ADIError::resolve(err)),
+        }
+    }
+
+    // TODO: this isn't right
+    fn calculate_action_signature(&mut self, session: u32, ptm: &[u8], tk: &[u8]) -> Result<(), ADIError> {
         let ptm_size = ptm.len() as u32;
         let ptm_ptr = ptm.as_ptr();
 

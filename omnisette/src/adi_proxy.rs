@@ -111,6 +111,7 @@ pub trait ADIProxy {
     fn get_local_user_uuid(&self) -> String;
     fn get_device_identifier(&self) -> String;
     fn get_serial_number(&self) -> String;
+    fn calculate_action_signature(&mut self, session: u32, ptm: &[u8], tk: &[u8]) -> Result<(), ADIError>; // TODO:
 }
 
 pub trait ConfigurableADIProxy: ADIProxy {
