@@ -1,5 +1,5 @@
 pub mod anisette;
-mod client;
+pub mod client;
 pub use client::AppleAccount;
 #[derive(Debug)]
 pub enum Error {
